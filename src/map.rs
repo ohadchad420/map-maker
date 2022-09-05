@@ -1,3 +1,5 @@
+use std::cmp::max;
+
 use noise::{Perlin, Seedable};
 use rand::{SeedableRng, rngs::StdRng};
 use sdl2::pixels::Color;
@@ -30,9 +32,9 @@ impl map {
     pub fn get_point_biomes(&mut self, x: i32, y: i32, biomes: Vec<Biome>) -> Vec<f32> {
         let mut res: Vec<f32> = vec![];
         for i in biomes {
-            res.push((((
+            res.push(((
                 (i.x - x)*(i.x - x) / 4 + (i.y - y)*(i.y - y) * 4) as f32)
-                .sqrt() * rand::Rng::gen_range(&mut self.rng, 0.9..=1.0) / i.r))
+                .sqrt() * rand::Rng::gen_range(&mut self.rng, 0.75..=1.0))
         }
         res
     }
@@ -46,11 +48,28 @@ impl map {
         ice:            200, 235, 235
         dry:            70,  60,  30
         */
-        Color::RGB(
-            ((235.0 * biome[0] + 40.0  * biome[1] + 200.0 * biome[2] + 70.0 * biome[3]) / sum * darkness) as u8,
-            ((230.0 * biome[0] + 145.0 * biome[1] + 235.0 * biome[2] + 60.0 * biome[3]) / sum * darkness) as u8, 
-            ((180.0 * biome[0] + 75.0  * biome[1] + 235.0 * biome[2] + 30.0 * biome[3]) / sum * darkness) as u8,
-        )
+        let max = biome.iter().cloned().fold(0./0., f32::max);
+        let mut col: Color = Color::BLACK;
+        for i in 0..biome.len() {
+            if biome[i] == max {
+                match i {
+                    0 => { //desert
+                        col = Color::RGB((235.0 * darkness) as u8, (230.0 * darkness) as u8, (180.0 * darkness) as u8);
+                    }
+                    1 => { //forest
+                        col = Color::RGB((40.0 * darkness) as u8, (145.0 * darkness) as u8, (75.0 * darkness) as u8);
+                    }
+                    2 => { //ice
+                        col = Color::RGB((200.0 * darkness) as u8, (235.0 * darkness) as u8, (235.0 * darkness) as u8);
+                    }
+                    3 => { //dry
+                        col = Color::RGB((70.0 * darkness) as u8, (60.0 * darkness) as u8, (30.0 * darkness) as u8);
+                    }
+                    _ => {}
+                }
+            }
+        }
+        col
         
     }
 
